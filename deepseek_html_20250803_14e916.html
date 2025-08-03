@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кавказские Снайдеры</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(to bottom, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.7);
+            color: #FFD700;
+            background: linear-gradient(to right, #FF0000, #0000FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 500px;
+            background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 5px solid #8B4513;
+        }
+        
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(139, 69, 19, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .ammo {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .ammo-bird {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #D80027, #0033A0);
+            border-radius: 50%;
+            border: 2px solid #FFD700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 800px;
+            text-align: center;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        .character-info {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 800px;
+            margin: 20px 0;
+            gap: 20px;
+        }
+        
+        .character-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            width: 45%;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .armenian {
+            border: 3px solid #D80027;
+        }
+        
+        .azerbaijani {
+            border: 3px solid #0033A0;
+        }
+        
+        .character-title {
+            font-weight: bold;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+        
+        .character-card.armenian .character-title {
+            color: #D80027;
+        }
+        
+        .character-card.azerbaijani .character-title {
+            color: #0033A0;
+        }
+        
+        .character-description {
+            color: #333;
+            font-size: 0.95rem;
+        }
+        
+        .launch-area {
+            position: absolute;
+            bottom: 20px;
+            left: 50px;
+            width: 100px;
+            height: 100px;
+            z-index: 10;
+        }
+        
+        .slingshot {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 150px;
+            background: #8B4513;
+            border-radius: 20px;
+            z-index: 5;
+        }
+        
+        .slingshot:before, .slingshot:after {
+            content: '';
+            position: absolute;
+            top: -40px;
+            width: 10px;
+            height: 80px;
+            background: #8B4513;
+            border-radius: 5px;
+        }
+        
+        .slingshot:before {
+            left: 5px;
+            transform: rotate(20deg);
+        }
+        
+        .slingshot:after {
+            right: 5px;
+            transform: rotate(-20deg);
+        }
+        
+        .level-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #FFD700;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            z-index: 10;
+        }
+        
+        .restart-btn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: linear-gradient(to right, #D80027, #0033A0);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .restart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            z-index: 100;
+            display: none;
+        }
+        
+        .message-title {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #FFD700;
+        }
+        
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .character-info {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .character-card {
+                width: 90%;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>✡️ Кавказские Снайдеры ✡️</h1>
+        <p>Армянские мальчики против Азербайджанских девочек</p>
+    </header>
+    
+    <div class="character-info">
+        <div class="character-card armenian">
+            <div class="character-title">Армянские мальчики</div>
+            <div class="character-description">Сильные и меткие воины. Используйте их, чтобы разрушить вражеские укрепления!</div>
+        </div>
+        
+        <div class="character-card azerbaijani">
+            <div class="character-title">Азербайджанские девочки</div>
+            <div class="character-description">Построили крепкие башни. Ваша цель - разрушить все постройки и победить!</div>
+        </div>
+    </div>
+    
+    <div class="game-container">
+        <div class="level-indicator">Уровень 1</div>
+        
+        <div class="launch-area">
+            <div class="slingshot"></div>
+        </div>
+        
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+        
+        <div class="game-message" id="gameMessage">
+            <div class="message-title" id="messageTitle">Победа!</div>
+            <p id="messageText">Вы успешно завершили уровень!</p>
+            <button class="restart-btn" onclick="restartGame()">Играть снова</button>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <div class="ammo">
+            <div class="ammo-bird">1</div>
+            <div class="ammo-bird">2</div>
+            <div class="ammo-bird">3</div>
+        </div>
+        
+        <div class="stats">
+            <div>Очки: <span id="score">0</span></div>
+            <div>Осталось: <span id="birdsLeft">3</span></div>
+        </div>
+    </div>
+    
+    <div class="instructions">
+        <p>🎯 Цель игры: Выстреливайте армянскими мальчиками с помощью рогатки, чтобы разрушить строения азербайджанских девочек</p>
+        <p>⬅️ Перетащите птичку (мальчика) назад, затем отпустите, чтобы выстрелить</p>
+        <p>🏆 Зарабатывайте очки за каждую сбитую девочку и разрушенную постройку</p>
+    </div>
+    
+    <button class="restart-btn" onclick="restartGame()">Начать заново</button>
+
+    <script>
+        // Игровые переменные
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const birdsLeftElement = document.getElementById('birdsLeft');
+        const gameMessage = document.getElementById('gameMessage');
+        const messageTitle = document.getElementById('messageTitle');
+        const messageText = document.getElementById('messageText');
+        
+        let score = 0;
+        let birds = 3;
+        let gameActive = true;
+        let currentBird = null;
+        let slingshotX = 100;
+        let slingshotY = 420;
+        let mouseDown = false;
+        let mouseX = 0;
+        let mouseY = 0;
+        
+        // Класс для птички (армянский мальчик)
+        class Bird {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 20;
+                this.color = '#D80027'; // Красный цвет флага Армении
+                this.velocityX = 0;
+                this.velocityY = 0;
+                this.launched = false;
+                this.angle = 0;
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                
+                // Тело птички
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.closePath();
+                
+                // Голова
+                ctx.beginPath();
+                ctx.arc(-5, -5, this.radius * 0.6, 0, Math.PI * 2);
+                ctx.fillStyle = '#F0E68C'; // Светло-коричневый для лица
+                ctx.fill();
+                ctx.closePath();
+                
+                // Глаз
+                ctx.beginPath();
+                ctx.arc(-8, -7, 3, 0, Math.PI * 2);
+                ctx.fillStyle = 'black';
+                ctx.fill();
+                ctx.closePath();
+                
+                // Волосы
+                ctx.beginPath();
+                ctx.moveTo(-15, -10);
+                ctx.lineTo(-10, -15);
+                ctx.lineTo(0, -10);
+                ctx.lineTo(5, -15);
+                ctx.lineTo(10, -10);
+                ctx.fillStyle = '#8B4513'; // Коричневый
+                ctx.fill();
+                ctx.closePath();
+                
+                ctx.restore();
+            }
+            
+            update() {
+                if (this.launched) {
+                    this.velocityY += 0.5; // Гравитация
+                    this.x += this.velocityX;
+                    this.y += this.velocityY;
+                    
+                    // Вращение птички в полете
+                    this.angle = Math.atan2(this.velocityY, this.velocityX);
+                    
+                    // Проверка границ
+                    if (this.x > canvas.width || this.x < 0 || this.y > canvas.height) {
+                        nextBird();
+                    }
+                } else if (mouseDown) {
+                    // Расчет положения при натягивании рогатки
+                    const dx = mouseX - slingshotX;
+                    const dy = mouseY - slingshotY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const maxDist = 100;
+                    
+                    if (dist > maxDist) {
+                        this.x = slingshotX + dx * maxDist / dist;
+                        this.y = slingshotY + dy * maxDist / dist;
+                    } else {
+                        this.x = mouseX;
+                        this.y = mouseY;
+                    }
+                } else {
+                    this.x = slingshotX;
+                    this.y = slingshotY;
+                }
+                
+                this.draw();
+            }
+            
+            launch() {
+                if (!this.launched) {
+                    const dx = slingshotX - this.x;
+                    const dy = slingshotY - this.y;
+                    const power = 0.2;
+                    
+                    this.velocityX = dx * power;
+                    this.velocityY = dy * power;
+                    this.launched = true;
+                    birds--;
+                    birdsLeftElement.textContent = birds;
+                }
+            }
+        }
+        
+        // Класс для свинки (азербайджанская девочка)
+        class Pig {
+            constructor(x, y, size) {
+                this.x = x;
+                this.y = y;
+                this.size = size || 30;
+                this.color = '#0033A0'; // Синий цвет флага Азербайджана
+                this.hit = false;
+            }
+            
+            draw() {
+                if (this.hit) return;
+                
+                // Тело свинки
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.closePath();
+                
+                // Голова
+                ctx.beginPath();
+                ctx.arc(this.x, this.y - this.size * 0.7, this.size * 0.6, 0, Math.PI * 2);
+                ctx.fillStyle = '#FFB6C1'; // Розовый для лица
+                ctx.fill();
+                ctx.closePath();
+                
+                // Глаз
+                ctx.beginPath();
+                ctx.arc(this.x - 5, this.y - this.size * 0.8, 4, 0, Math.PI * 2);
+                ctx.fillStyle = 'black';
+                ctx.fill();
+                ctx.closePath();
+                
+                // Коса
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y - this.size * 0.7);
+                ctx.lineTo(this.x + 20, this.y - this.size * 0.9);
+                ctx.lineTo(this.x + 30, this.y - this.size * 0.5);
+                ctx.lineTo(this.x + 20, this.y - this.size * 0.3);
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                ctx.closePath();
+            }
+            
+            isHit(x, y, radius) {
+                if (this.hit) return false;
+                
+                const dx = this.x - x;
+                const dy = this.y - y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < this.size + radius) {
+                    this.hit = true;
+                    score += 100;
+                    scoreElement.textContent = score;
+                    return true;
+                }
+                
+                return false;
+            }
+        }
+        
+        // Класс для блоков (строения)
+        class Block {
+            constructor(x, y, width, height, color) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.color = color || '#8B4513'; // Коричневый по умолчанию
+                this.health = 100;
+            }
+            
+            draw() {
+                if (this.health <= 0) return;
+                
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
+                
+                // Детали блока
+                ctx.strokeStyle = '#5D2906';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
+            }
+            
+            isHit(x, y, radius) {
+                if (this.health <= 0) return false;
+                
+                // Упрощенная проверка столкновения
+                const closestX = Math.max(this.x - this.width/2, Math.min(x, this.x + this.width/2));
+                const closestY = Math.max(this.y - this.height/2, Math.min(y, this.y + this.height/2));
+                
+                const dx = x - closestX;
+                const dy = y - closestY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < radius) {
+                    this.health -= 25;
+                    if (this.health <= 0) {
+                        score += 50;
+                        scoreElement.textContent = score;
+                    }
+                    return true;
+                }
+                
+                return false;
+            }
+        }
+        
+        // Создаем игровые объекты
+        const pigs = [
+            new Pig(650, 430, 30),
+            new Pig(600, 350, 25),
+            new Pig(700, 350, 25)
+        ];
+        
+        const blocks = [
+            new Block(600, 400, 200, 30),
+            new Block(600, 300, 30, 200),
+            new Block(700, 300, 30, 200),
+            new Block(550, 350, 30, 100),
+            new Block(650, 250, 100, 30),
+            new Block(650, 200, 30, 100, '#2E8B57')
+        ];
+        
+        // Функции игры
+        function startGame() {
+            currentBird = new Bird(slingshotX, slingshotY);
+            gameActive = true;
+            score = 0;
+            birds = 3;
+            scoreElement.textContent = score;
+            birdsLeftElement.textContent = birds;
+            
+            // Сброс состояния объектов
+            pigs.forEach(pig => pig.hit = false);
+            blocks.forEach(block => block.health = 100);
+            
+            gameMessage.style.display = 'none';
+            animate();
+        }
+        
+        function nextBird() {
+            if (birds > 0) {
+                currentBird = new Bird(slingshotX, slingshotY);
+            } else {
+                checkGameOver();
+            }
+        }
+        
+        function checkCollisions() {
+            if (!currentBird || !currentBird.launched) return;
+            
+            // Проверка столкновения с блоками
+            blocks.forEach(block => {
+                block.isHit(currentBird.x, currentBird.y, currentBird.radius);
+            });
+            
+            // Проверка столкновения со свинками
+            pigs.forEach(pig => {
+                pig.isHit(currentBird.x, currentBird.y, currentBird.radius);
+            });
+        }
+        
+        function checkGameOver() {
+            const pigsLeft = pigs.filter(pig => !pig.hit).length;
+            
+            if (pigsLeft === 0) {
+                // Победа
+                messageTitle.textContent = "Победа!";
+                messageText.textContent = `Вы уничтожили все цели! Ваш счет: ${score}`;
+                gameMessage.style.display = 'block';
+                gameActive = false;
+            } else if (birds === 0) {
+                // Поражение
+                messageTitle.textContent = "Игра окончена";
+                messageText.textContent = `Попытки закончились! Ваш счет: ${score}`;
+                gameMessage.style.display = 'block';
+                gameActive = false;
+            }
+        }
+        
+        function drawBackground() {
+            // Небо
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Солнце
+            ctx.beginPath();
+            ctx.arc(700, 80, 50, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFD700';
+            ctx.fill();
+            ctx.closePath();
+            
+            // Облака
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath();
+            ctx.arc(100, 80, 30, 0, Math.PI * 2);
+            ctx.arc(130, 70, 35, 0, Math.PI * 2);
+            ctx.arc(160, 80, 30, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(300, 60, 25, 0, Math.PI * 2);
+            ctx.arc(330, 50, 30, 0, Math.PI * 2);
+            ctx.arc(360, 60, 25, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Земля
+            ctx.fillStyle = '#3a9a3a';
+            ctx.fillRect(0, 450, canvas.width, 50);
+            
+            // Трава
+            ctx.fillStyle = '#2E8B57';
+            for (let i = 0; i < canvas.width; i += 5) {
+                const height = 10 + Math.random() * 10;
+                ctx.fillRect(i, 450, 3, -height);
+            }
+        }
+        
+        function drawSlingshot() {
+            ctx.fillStyle = '#8B4513';
+            
+            // Основа рогатки
+            ctx.fillRect(slingshotX - 10, slingshotY, 20, 80);
+            
+            // Разветвления рогатки
+            ctx.beginPath();
+            ctx.moveTo(slingshotX - 15, slingshotY);
+            ctx.lineTo(slingshotX - 30, slingshotY - 80);
+            ctx.lineTo(slingshotX - 10, slingshotY - 70);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(slingshotX + 15, slingshotY);
+            ctx.lineTo(slingshotX + 30, slingshotY - 80);
+            ctx.lineTo(slingshotX + 10, slingshotY - 70);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Резинка рогатки
+            if (currentBird && !currentBird.launched && mouseDown) {
+                ctx.beginPath();
+                ctx.moveTo(slingshotX - 15, slingshotY - 70);
+                ctx.lineTo(currentBird.x, currentBird.y);
+                ctx.lineTo(slingshotX + 15, slingshotY - 70);
+                ctx.strokeStyle = '#D2691E';
+                ctx.lineWidth = 5;
+                ctx.stroke();
+            }
+        }
+        
+        function animate() {
+            if (!gameActive) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            drawBackground();
+            drawSlingshot();
+            
+            // Рисуем блоки
+            blocks.forEach(block => block.draw());
+            
+            // Рисуем свинок
+            pigs.forEach(pig => pig.draw());
+            
+            // Обновляем и рисуем птичку
+            if (currentBird) {
+                currentBird.update();
+                checkCollisions();
+                checkGameOver();
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // Обработчики событий
+        canvas.addEventListener('mousedown', (e) => {
+            if (!gameActive || !currentBird || currentBird.launched) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+            
+            // Проверяем, нажали ли на птичку
+            const dx = mouseX - currentBird.x;
+            const dy = mouseY - currentBird.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < currentBird.radius) {
+                mouseDown = true;
+            }
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            if (!mouseDown) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            if (mouseDown && currentBird && !currentBird.launched) {
+                currentBird.launch();
+            }
+            mouseDown = false;
+        });
+        
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (!gameActive || !currentBird || currentBird.launched) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.touches[0].clientX - rect.left;
+            mouseY = e.touches[0].clientY - rect.top;
+            
+            const dx = mouseX - currentBird.x;
+            const dy = mouseY - currentBird.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < currentBird.radius) {
+                mouseDown = true;
+            }
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!mouseDown) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.touches[0].clientX - rect.left;
+            mouseY = e.touches[0].clientY - rect.top;
+        });
+        
+        canvas.addEventListener('touchend', () => {
+            if (mouseDown && currentBird && !currentBird.launched) {
+                currentBird.launch();
+            }
+            mouseDown = false;
+        });
+        
+        function restartGame() {
+            startGame();
+        }
+        
+        // Начинаем игру
+        window.onload = startGame;
+    </script>
+</body>
+</html>
